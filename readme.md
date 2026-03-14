@@ -2,7 +2,7 @@
 
 An interactive strategic tool that maps 27 AI-era value delivery models, shows how they're evolving, and provides actionable transformation playbooks for founders navigating the AI transition.
 
-**Live demo:** [Your GitHub Pages URL here]
+**Live demo:** https://suleman-dawood.github.io/ai-transformation-navigator/
 
 ---
 
@@ -175,36 +175,38 @@ Toggle between Revenue, Efficiency, and Capability views to see which models ser
 
 ## Technical Architecture
 
-### Current State: Single HTML File
-The tool is currently a single `index.html` file with:
-- **Zero dependencies** — no React, no build step, no npm
+### File Structure
+```
+index.html          ← HTML shell + CSS (no JS, just <script> tags)
+js/
+  data.js           ← All content: 27 models, 24 migrations, 7 profiles, lookup tables
+  helpers.js        ← Pure utility functions, coordinate transforms, data lookups
+  components.js     ← Render functions that return HTML strings
+  app.js            ← State management, render orchestrator, event binding
+readme.md
+```
+
+### Key Design Decisions
+- **Zero dependencies** — no React, no build step, no npm, no bundler
+- **Static files only** — served directly by GitHub Pages, no CI/CD needed
+- **Data separated from UI** — edit `js/data.js` to change content without touching rendering code
 - **Vanilla JavaScript** with a simple reactive render pattern
-- **Inline CSS** with a minimal class-based system
 - **SVG** for the map rendering (viewBox-based, responsive)
-- **~600 lines of JS** including all data
 
 ### How The Code Works
 
-**State management:** A simple `state` object holds all UI state (selected node, selected arrow, filters, compare items). Every interaction updates state and calls `render()` which rebuilds the entire DOM. This is intentionally simple — no virtual DOM diffing, just full re-renders. Performance is fine because the DOM is small.
+**State management** (`js/app.js`): A simple `state` object holds all UI state. Every interaction updates state and calls `render()` which rebuilds the entire DOM. Performance is fine because the DOM is small.
 
-```javascript
-let state = {
-  sel: null,      // Selected node ID
-  arrow: null,    // Selected arrow index
-  pf: "all",      // Problem filter
-  fp: null,       // Founder profile ID
-  arrows: true,   // Show migration arrows
-  compare: false, // Compare mode on/off
-  comp: []        // Array of arrow indices being compared
-};
-```
+**Data layer** (`js/data.js`): All content lives here — models (`MODELS`), migrations (`MIGRATIONS`), founder profiles (`PROFILES`), and lookup tables (`STATUS_CONFIG`, `INTERFACE_ICONS`, etc.). Edit this file to add/change models, migration paths, or founder profiles.
 
-**Rendering:** The `render()` function builds three things:
-1. SVG map (nodes + arrows) via string concatenation
-2. Detail panel HTML (varies by selection state)
-3. Control bar (founder selector, filters)
+**Helpers** (`js/helpers.js`): Pure functions for data lookups (`getModel`, `getProfile`), filtering (`getFilteredModels`, `getVisibleMigrations`), and SVG coordinate math (`tx`, `ty`).
 
-Then injects via `innerHTML` and re-attaches event listeners.
+**Components** (`js/components.js`): Each UI section has a render function that returns an HTML string:
+- `renderFounderSelector()` — profile picker + strategy text
+- `renderFilterBar()` — problem filter, arrow toggle, compare toggle, legend
+- `renderMap()` — SVG map with nodes and arrows
+- `renderDetailPanel()` — routes to node detail, migration detail, compare view, or empty state
+- `renderActionPlan()` / `renderTimeline()` — reusable sub-components
 
 **Map coordinate system:**
 - SVG viewBox is 660×460
@@ -212,31 +214,30 @@ Then injects via `innerHTML` and re-attaches event listeners.
 - `tx(x)` and `ty(y)` convert 0-100 data coordinates to SVG coordinates
 - Y-axis is inverted (high values = top of map)
 
-**Arrow hit detection:** Each arrow has an invisible fat line (stroke-width 14, transparent) overlaying the visible thin line for click/hover targeting.
+### Development
 
-**Node rendering order:** Arrows render first (below), then nodes (above). Profile rings (current/target indicators) render before the node circle.
+Just open `index.html` in a browser. No install, no build, no server required.
 
-### Recommended Refactor Path (for Claude Code)
+For local development with live reload, use any simple HTTP server:
+```bash
+# Python
+python3 -m http.server 8000
 
-When converting to a proper project, the priorities are:
+# Node (if npx available)
+npx serve .
+```
 
-1. **Separate data from code.** Move `M` (models), `MIG` (migrations), and `FP` (founder profiles) into `src/data/models.ts`, `src/data/migrations.ts`, `src/data/profiles.ts`. This is the #1 priority because the team will iterate on content separately from UI.
+### Deployment
 
-2. **Convert to React + Vite.** The render pattern already maps cleanly to React components:
-   - `<App />` — state management, layout
-   - `<FounderSelector />` — profile picker + strategy text
-   - `<FilterBar />` — problem filter, arrow toggle, compare toggle, legend
-   - `<LandscapeMap />` — SVG map with nodes and arrows
-   - `<DetailPanel />` — node detail, migration detail, or compare view
-   - `<ActionPlan />` — team/gtm/ops/finance sections
-   - `<Timeline />` — 3-phase timeline display
-   - `<CompareView />` — side-by-side migration comparison
+GitHub Pages serves directly from `main` branch. Push to `main` and it deploys automatically — no build step needed.
 
-3. **Add TypeScript types** for the data model (Node, Migration, FounderProfile). The data structures are already well-defined — just need interface declarations.
+### Editing Content
 
-4. **Set up GitHub Pages deployment** via GitHub Actions — push to main auto-deploys.
+To add or modify models, migrations, or profiles, only edit `js/data.js`:
 
-5. **Add a data validation layer** — ensure all migration `from`/`to` IDs reference valid nodes, all founder profile node IDs exist, etc. This prevents data entry errors as the team adds content.
+- **Add a model**: Add an object to the `MODELS` array with all required fields (id, name, subtitle, examples, x, y, status, iface, pricing, archetype, problems, description, bestFor)
+- **Add a migration path**: Add an object to the `MIGRATIONS` array with from/to IDs, reasoning, and actions (team, gtm, ops, finance, timeline)
+- **Add a founder profile**: Add an object to the `PROFILES` array with id, label, icon, cur (current node IDs), tgt (target node IDs), and advice
 
 ### Potential Future Features
 
