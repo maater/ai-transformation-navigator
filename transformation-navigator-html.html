@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-First Transformation Navigator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f1f5f9;color:#1a1a2e;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding:12px}
+h1{font-size:18px;font-weight:700;margin-bottom:2px}
+.sub{font-size:11px;color:#999;margin-bottom:10px}
+.card{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:10px 12px;margin-bottom:8px}
+.card-label{font-size:10px;font-weight:600;color:#888;margin-bottom:5px}
+.btn-row{display:flex;gap:5px;flex-wrap:wrap}
+.btn{padding:4px 10px;border-radius:14px;border:1.5px solid #ddd;background:#fff;color:#555;font-size:10px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn:hover{border-color:#aaa}
+.btn.on{background:#6366f1;color:#fff;border-color:#6366f1}
+.btn.on-y{background:#f59e0b;color:#fff;border-color:#f59e0b}
+.filter-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.legend{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.legend span{font-size:9px;color:#999}
+.main{display:flex;gap:10px}
+.map-wrap{flex:1 1 auto;min-width:0}
+.panel{width:340px;flex-shrink:0;max-height:540px;overflow-y:auto}
+.panel::-webkit-scrollbar{width:4px}
+.panel::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px}
+.strat-box{margin-top:6px;padding:7px 9px;background:#eef2ff;border-radius:7px;font-size:11px;color:#3730a3;line-height:1.45}
+.detail-card{padding:12px;border-radius:8px;border-width:2px;border-style:solid;font-size:11px}
+.detail-card h3{font-size:13px;line-height:1.3}
+.tag{padding:1px 6px;border-radius:6px;font-size:8px;font-weight:600;display:inline-block;margin-right:3px;margin-bottom:3px}
+.best-box{padding:5px 7px;border-radius:5px;background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.06);margin:6px 0}
+.best-box .label{font-size:8px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:2px}
+.best-box .val{font-size:10px;color:#333;line-height:1.4}
+.mig-link{font-size:10px;color:#6366f1;cursor:pointer;text-decoration:underline;margin-bottom:2px}
+.mig-from{font-size:10px;color:#999;margin-bottom:2px}
+.action-section{margin-bottom:8px}
+.action-title{font-weight:700;color:#6366f1;font-size:10px;margin-bottom:2px}
+.action-item{color:#444;padding-left:12px;font-size:10px;line-height:1.5}
+.tl-box{margin-top:8px;padding:8px 10px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0}
+.tl-phase{font-weight:700;color:#15803d;font-size:10px}
+.tl-desc{color:#166534;font-size:10px;line-height:1.4;padding-left:8px;margin-bottom:5px}
+.empty-panel{padding:20px;border-radius:8px;border:2px dashed #e2e8f0;text-align:center;color:#bbb;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.compare-header{padding:6px 8px;background:#fffbeb;border-radius:6px;border:1px solid #f59e0b;font-size:10px;color:#92400e;margin-bottom:8px}
+.compare-card{padding:10px;border-radius:8px;border-width:2px;border-style:solid;background:#fff;font-size:11px;margin-bottom:8px}
+@media(max-width:800px){.main{flex-direction:column}.panel{width:100%;max-height:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+const M=[
+{id:1,name:"We Advise on Strategy",subtitle:"Traditional Mgmt Consultancy",examples:"McKinsey, BCG, Bain",x:10,y:85,status:"legacy",iface:"human",pricing:"project",archetype:"Sage",problems:["revenue","efficiency","capability"],description:"Senior humans embed deeply, diagnose problems, recommend solutions. AI is democratizing the insight they sell.",bestFor:"Ambiguous strategic problems where the client can't articulate what's wrong"},
+{id:2,name:"We Do Your Repetitive Work Cheaper",subtitle:"Traditional BPO",examples:"Infosys, Wipro, Cognizant",x:12,y:45,status:"legacy",iface:"human",pricing:"retainer",archetype:"Servant",problems:["efficiency"],description:"Offshore humans handle back-office at lower cost. AI eliminates the labor arbitrage entirely.",bestFor:"High-volume repetitive ops — but AI does this cheaper now"},
+{id:3,name:"Here's a Tool, You Figure It Out",subtitle:"Classic Horizontal SaaS",examples:"Salesforce, HubSpot, Workday",x:65,y:15,status:"legacy",iface:"gui",pricing:"subscription",archetype:"Ruler",problems:["revenue","efficiency"],description:"One-size-fits-all software. Customer adapts to the tool. The 'hammer' model.",bestFor:"Standardizable workflows where process conformity is acceptable"},
+{id:4,name:"We Build Custom Software & Hand It Over",subtitle:"Dev Shop / System Integrator",examples:"Accenture, Deloitte Digital",x:15,y:55,status:"legacy",iface:"human",pricing:"project",archetype:"Builder",problems:["capability","efficiency"],description:"Custom software built by humans, scoped through relationships, delivered as a project.",bestFor:"Complex integrations — shrinking window"},
+{id:5,name:"Your Existing Tool, Now With AI Assist",subtitle:"AI-Augmented SaaS",examples:"Notion AI, Grammarly, HubSpot AI",x:72,y:20,status:"current",iface:"gui",pricing:"subscription",archetype:"Magician",problems:["efficiency","revenue"],description:"Same SaaS with AI bolted on. Still a tool — AI assists but you do the work.",bestFor:"Incremental productivity within existing workflows"},
+{id:6,name:"AI-Powered Workflow Tools You Operate",subtitle:"AI-Native Workflow SaaS",examples:"Clay, Apollo AI, Zapier AI",x:78,y:25,status:"current",iface:"gui",pricing:"subscription",archetype:"Creator",problems:["revenue","efficiency"],description:"Built AI-first. More capable but still delivers tools not outcomes.",bestFor:"Tech-savvy users who want control"},
+{id:7,name:"We Know Your Industry's Data Inside Out",subtitle:"Vertical Data Consultancy",examples:"Ascend Analytics, health data firms",x:30,y:70,status:"current",iface:"human",pricing:"project",archetype:"Sage",problems:["efficiency","revenue"],description:"Deep domain + data expertise via human relationships. Builds tools/pipelines and hands over.",bestFor:"Regulated verticals with messy, fragmented data"},
+{id:8,name:"We'll Get You Set Up With AI",subtitle:"Horizontal AI Implementation",examples:"Brainforge, generic AI consultancies",x:35,y:50,status:"current",iface:"human",pricing:"project",archetype:"Guide",problems:["capability","efficiency"],description:"Build AI systems, hand them over. Most crowded, least defensible.",bestFor:"Enterprises under board pressure to 'do AI'"},
+{id:9,name:"We Grow Your Revenue, AI Does the Work",subtitle:"AI-First Agency (Revenue)",examples:"AI outbound, AI creative agencies",x:55,y:65,status:"emerging",iface:"human",pricing:"retainer",archetype:"Hero",problems:["revenue"],description:"Human interface, AI delivery for growth. Real margin expansion.",bestFor:"Revenue work where ambiguity is high"},
+{id:10,name:"We Run Your Operations, AI Does the Work",subtitle:"AI-First Agency (Efficiency)",examples:"Pilot, AI ops firms",x:55,y:58,status:"emerging",iface:"human",pricing:"retainer",archetype:"Hero",problems:["efficiency"],description:"Human interface, AI delivery for ops. Strong automation path.",bestFor:"Back-office with measurable outcomes"},
+{id:11,name:"We Build Custom Software Faster With AI",subtitle:"AI-Augmented Bespoke Dev",examples:"Dev shops using Cursor/Copilot",x:42,y:55,status:"emerging",iface:"human",pricing:"project",archetype:"Builder",problems:["capability"],description:"Traditional dev shop with 3x AI acceleration. Temporary advantage.",bestFor:"Complex custom builds — window closing"},
+{id:12,name:"AI Runs Your Domain Ops Autonomously",subtitle:"Vertical AI Ops",examples:"AceDev (cloud ops)",x:80,y:40,status:"emerging",iface:"gui",pricing:"subscription",archetype:"Magician",problems:["efficiency"],description:"Domain-specific autonomous operations. Strong feedback loops.",bestFor:"Structured ops with clear success metrics"},
+{id:13,name:"Software Does the Efficiency Work For You",subtitle:"Service-as-Software (Efficiency)",examples:"Harvey, EvenUp, Klarna AI",x:88,y:35,status:"frontier",iface:"gui",pricing:"outcome",archetype:"Magician",problems:["efficiency"],description:"Self-serve, AI-delivered efficiency outcomes. The promised land.",bestFor:"High-volume structured work with clear outputs"},
+{id:14,name:"Software Grows Your Revenue For You",subtitle:"Service-as-Software (Revenue)",examples:"Barely exists",x:88,y:45,status:"frontier",iface:"gui",pricing:"outcome",archetype:"Magician",problems:["revenue"],description:"Hardest frontier. Revenue work is too ambiguous for most.",bestFor:"Only where inputs/outputs are highly structured"},
+{id:15,name:"Deeply Personalized Outcomes at Scale",subtitle:"Contextual Outcome Engine (CAS)",examples:"The convergence — no pure example",x:75,y:75,status:"frontier",iface:"hybrid",pricing:"outcome",archetype:"Oracle",problems:["revenue","efficiency","capability"],description:"The endgame. Bespoke experience at near-zero marginal cost.",bestFor:"Any problem where customization was too expensive"},
+{id:16,name:"We Maintain Your Orientation Fabric",subtitle:"Continuous Context Broker",examples:"Palantir-adjacent",x:45,y:90,status:"frontier",iface:"hybrid",pricing:"subscription",archetype:"Oracle",problems:["capability","revenue","efficiency"],description:"Builds the context layer that makes everything else work.",bestFor:"Orgs with degraded context across decision boundaries"},
+{id:17,name:"Routes Problems to Right AI+Human Blend",subtitle:"Outcome Marketplace / Router",examples:"No named example",x:70,y:55,status:"frontier",iface:"gui",pricing:"outcome",archetype:"Magician",problems:["revenue","efficiency","capability"],description:"Routes to optimal blend of AI agents + human experts dynamically.",bestFor:"Variable-complexity problems"},
+{id:18,name:"Independent Experts Sharing AI Infra",subtitle:"AI-Native Cooperative / Guild",examples:"Early signals in legal, accounting",x:40,y:75,status:"frontier",iface:"human",pricing:"retainer",archetype:"Sage",problems:["revenue","efficiency","capability"],description:"Domain experts share AI platform. Collective data makes everyone better.",bestFor:"Professional services where individual expertise matters"},
+{id:19,name:"Invisible AI Layer Inside Other Products",subtitle:"Embedded Intelligence (B2B2B)",examples:"White-label AI — early",x:85,y:30,status:"frontier",iface:"none",pricing:"outcome",archetype:"Invisible",problems:["efficiency","capability"],description:"Embeds inside other products. End customer never knows you exist.",bestFor:"Enabling platforms to offer AI outcomes"},
+{id:20,name:"We ARE Your Entire Business Function",subtitle:"Autonomous BU-as-a-Service",examples:"Rippling (aspiring), Pilot",x:72,y:68,status:"frontier",iface:"hybrid",pricing:"retainer",archetype:"Hero",problems:["efficiency","capability"],description:"Not a tool, not a task — the entire function as a managed service.",bestFor:"SMBs that need a full function but can't build the team"},
+{id:21,name:"AI Finds Opportunities, Humans Execute",subtitle:"Predictive Venture Builder",examples:"Demand radar concept",x:60,y:82,status:"frontier",iface:"hybrid",pricing:"outcome",archetype:"Explorer",problems:["revenue","capability"],description:"AI scans demand, validates, humans execute. Meta-OODA loop.",bestFor:"Speed of opportunity validation is the edge"},
+{id:22,name:"Deliberately Human, Deliberately Premium",subtitle:"Human Premium / Artisanal",examples:"Luxury advisory, concierge",x:5,y:95,status:"frontier",iface:"human",pricing:"project",archetype:"Sage",problems:["revenue","capability"],description:"Contrarian. Human-crafted becomes luxury as AI becomes ubiquitous.",bestFor:"High-trust work where 'a human did this' IS the value"},
+{id:23,name:"Software Guides You Through Doing It Yourself",subtitle:"Guided Self-Service",examples:"TurboTax, LegalZoom, Wix",x:50,y:20,status:"current",iface:"gui",pricing:"subscription",archetype:"Guide",problems:["efficiency","capability"],description:"Structures your labor, doesn't replace it. AI kills this first.",bestFor:"Complex tasks where judgment was hard to automate — falling fast"},
+{id:24,name:"Industry-Specific Platform You Adapt To",subtitle:"Vertical SaaS",examples:"Toast, Procore, Veeva",x:58,y:30,status:"current",iface:"gui",pricing:"subscription",archetype:"Ruler",problems:["efficiency","revenue"],description:"Deep domain logic in software. Stronger moat than horizontal SaaS.",bestFor:"Industry workflows where domain context is non-negotiable"},
+{id:25,name:"Build Your Business On Our Platform",subtitle:"Platform / Ecosystem",examples:"Shopify, Stripe, Webflow",x:62,y:22,status:"current",iface:"gui",pricing:"subscription",archetype:"Creator",problems:["revenue","capability"],description:"You build on their infra. AI transforms these — platforms do what you did manually.",bestFor:"Businesses needing infrastructure to build on"},
+{id:26,name:"We Sell Proprietary Data & Intelligence",subtitle:"Data / Intelligence-as-a-Service",examples:"ZoomInfo, Bloomberg, PitchBook",x:55,y:35,status:"current",iface:"gui",pricing:"subscription",archetype:"Oracle",problems:["revenue","efficiency","capability"],description:"Proprietary data access. Closest to Context Broker frontier.",bestFor:"Decisions requiring info not available publicly"},
+{id:27,name:"Raw AI Capability Via API",subtitle:"AI Model / API Provider",examples:"OpenAI, Anthropic, Cohere",x:92,y:10,status:"current",iface:"gui",pricing:"subscription",archetype:"Magician",problems:["capability"],description:"Pure capability, zero context. Enables everything else. Commoditizing.",bestFor:"Technical teams needing raw model capability"}
+];
+
+const MIG=[
+{from:1,to:9,reasoning:"AI generates analysis junior consultants did. Strategic relationship persists but delivery becomes AI-powered.",actions:{team:["Freeze junior analyst hiring","Upskill mid-level on AI orchestration","Hire 1-2 AI/automation engineers"],gtm:["Rebrand from 'advisory' to 'growth outcomes'","Shift to retainer + performance pricing","Build AI-delivered case studies"],ops:["Build AI delivery pipeline for analysis & research","QA workflow: AI generates → senior reviews","Standardize engagement templates"],finance:["Self-fundable — margin expansion funds transition","30-40% margin improvement in 6 months","No external capital needed"],timeline:{m1_3:"Build AI tools internally, pilot on 2-3 clients",m4_6:"Shift new engagements to retainer, reduce junior hiring",m7_12:"AI delivers 70%+ analytical work, humans do judgment"}}},
+{from:1,to:22,reasoning:"Some premium firms lean INTO human as AI commoditizes insight. Human attention becomes luxury.",actions:{team:["Retain only senior-most talent","Reduce team, increase per-person comp","Invest in thought leadership"],gtm:["Increase pricing 2-3x","Rebrand around exclusivity","Target C-suite only"],ops:["Limit AI in client-facing work","Use AI internally for prep only","Create premium experience rituals"],finance:["Higher margins, lower volume","No fundraising — premium lifestyle business","Expect revenue dip then recovery"],timeline:{m1_3:"Identify top 20% clients, reshape offering",m4_6:"Shed lower-tier clients, rebrand, increase prices",m7_12:"Premium boutique with 3-5x margins on fewer engagements"}}},
+{from:2,to:10,reasoning:"BPO's value was cheap labor. AI is cheaper. Survivors become AI-first ops agencies.",actions:{team:["Plan downsizing of ops staff (30-50% over 12mo)","Retrain top performers as AI supervisors","Hire AI engineers and automation specialists"],gtm:["Shift from 'cheap labor' to 'reliable outcomes'","Move to per-outcome pricing","Target clients frustrated with BPO quality"],ops:["Deploy AI agents for highest-volume tasks first","Build exception routing for edge cases","Implement quality monitoring dashboards"],finance:["Significant upfront AI investment","Plan for revenue dip during transition","Consider raising $2-5M to bridge"],timeline:{m1_3:"Identify top 3 processes, build AI replacement",m4_6:"Migrate first wave, begin staff restructuring",m7_12:"50%+ automated, new pricing on all new contracts"}}},
+{from:3,to:5,reasoning:"Defensive. Every horizontal SaaS bolts on AI. Table stakes, not transformation.",actions:{team:["Hire ML/AI product engineers","Upskill product team on AI patterns","No major restructuring"],gtm:["Add 'AI-powered' messaging","Launch AI as premium upsell","Position against laggard competitors"],ops:["Integrate LLM APIs into product","Build feedback loops for improvement","Ensure AI doesn't break core reliability"],finance:["Fundable from existing revenue","Expected move — not a new raise","Modest churn reduction and upsell"],timeline:{m1_3:"Ship first AI features",m4_6:"Expand AI, launch premium tier",m7_12:"AI features generating upsell, parity achieved"}}},
+{from:3,to:24,reasoning:"Horizontal loses to vertical. Survivors go deep into industries.",actions:{team:["Hire domain experts from target vertical","Replace generalist PMs with vertical specialists","Build industry-credible customer success"],gtm:["Pick ONE vertical, go all-in","Rebrand for vertical","Attend industry events, not tech events"],ops:["Fork product for vertical workflows","Build industry-standard integrations","Vertical-specific onboarding"],finance:["Significant investment — new product essentially","May require $5-15M raise","18-24 month payoff"],timeline:{m1_3:"Select vertical, hire domain experts, research",m4_6:"Build vertical features, 5-10 design partners",m7_12:"Launch vertical product, industry GTM"}}},
+{from:4,to:11,reasoning:"Dev shops adopt AI coding tools. 3x faster. Obvious but temporary advantage.",actions:{team:["Train all devs on Cursor/Copilot/Claude","Freeze junior dev hiring","Upskill PMs on AI-assisted scoping"],gtm:["Market speed: 'weeks not months'","Consider fixed-price over T&M","Fast-turnaround case studies"],ops:["Standardize AI dev workflow","Build AI code review tooling","Reusable AI-generated component libraries"],finance:["No capital needed — immediate margin expansion","Reinvest into productization","40-60% efficiency improvement"],timeline:{m1_3:"All devs using AI daily, first accelerated projects",m4_6:"New pricing, internal tooling maturing",m7_12:"3x speed, but plan next move — competitors catching up"}}},
+{from:5,to:13,reasoning:"AI-augmented SaaS evolves to doing the work. 'Help me write' → 'write and publish for me.'",actions:{team:["Shift from UI to AI agent pipelines","Hire reliability engineers for AI monitoring","Reduce customer success if truly self-serve"],gtm:["From 'helps you work' to 'does the work'","Outcome-based or usage-based pricing","Target those who outsource to humans"],ops:["Build confidence scoring","Human-in-loop for low-confidence","Outcome measurement and feedback loops"],finance:["Significant R&D in reliability","May require $10-20M raise","Higher ARPU, different sales motion"],timeline:{m1_3:"Identify one workflow to fully automate",m4_6:"Beta, measure quality vs human baseline",m7_12:"Autonomous mode for proven workflows"}}},
+{from:6,to:17,reasoning:"Workflow tools evolve to route problems automatically vs requiring configuration.",actions:{team:["Hire AI orchestration engineers","Add domain experts per problem category","Build partnerships with AI providers"],gtm:["From 'build your workflow' to 'describe your problem'","Per-outcome pricing","Target less technical buyers"],ops:["Build intent classification","Routing logic for problems → capabilities","QA across diverse output types"],finance:["Major platform rebuild — $5-15M raise","Network effects create defensibility","Longer to revenue but stronger moat"],timeline:{m1_3:"Intent classification for top 5 use cases",m4_6:"Pilot routing vs self-configured",m7_12:"Expand routing, phase out manual config"}}},
+{from:7,to:10,reasoning:"Vertical consultancies that run the function instead of handing over tools become AI-first ops agencies.",actions:{team:["Retain domain experts, reduce data engineering","Hire AI/ML ops engineers","Shift consultants to ongoing advisors"],gtm:["Stop selling projects, sell managed outcomes","Monthly retainer with outcome SLAs","'We ARE your analytics function'"],ops:["Automate pipeline construction with AI","Build monitoring and alerting","Client dashboards showing continuous value"],finance:["Revenue becomes recurring — huge predictability gain","Self-fundable through retainer conversion","6-month mixed revenue transition"],timeline:{m1_3:"Convert 2-3 best clients to retainer",m4_6:"Standardize managed service, sunset projects",m7_12:"Fully recurring, AI handles 60%+ routine work"}}},
+{from:8,to:12,reasoning:"Horizontal AI implementers die or specialize. Survivors pick a vertical and productize.",actions:{team:["Cut generalist consultants, hire vertical experts","Dedicated product engineering team","Shed non-vertical clients"],gtm:["Pick ONE vertical from past success","Rebrand entirely for vertical","Vertical case studies and thought leadership"],ops:["Productize most-built system","Self-serve onboarding","Monitoring and autonomous capabilities"],finance:["Painful — revenue dips shedding clients","Need $3-8M raise for product build","12-18 months runway for pivot"],timeline:{m1_3:"Analyze past work, select vertical, extract product",m4_6:"MVP, 3-5 design partners",m7_12:"Launch product, shift from services to product revenue"}}},
+{from:9,to:14,reasoning:"Revenue agencies that systematize can migrate to self-serve. Hardest path — revenue is ambiguous.",actions:{team:["Shift from client managers to product engineers","Hire growth data scientists","Gradually reduce account management"],gtm:["Identify ONE most reliable revenue outcome","Build self-serve for that outcome","Performance pricing"],ops:["Instrument every input, output, outcome","Build confidence model for AI autonomy","Progressive: supervised → autonomous"],finance:["High-risk, high-reward","Likely $10-25M venture funding","12-18mo revenue model transition"],timeline:{m1_3:"Instrument delivery, find most automatable loop",m4_6:"Self-serve prototype, test on simplest segment",m7_12:"Limited self-serve alongside agency"}}},
+{from:10,to:13,reasoning:"Efficiency agencies have cleanest automation path. Structured tasks, measurable outcomes.",actions:{team:["Progressive ops staff reduction","Humans: doer → exception handler → monitor","Hire product/platform engineers"],gtm:["Self-serve tier alongside managed service","Managed = premium for complex clients","From 'our team' to 'our platform'"],ops:["Confidence scoring per task type","Automated exception routing","Outcome dashboards replace status updates"],finance:["Self-fundable if margins healthy","Self-serve has much lower COGS","12-month parallel operation"],timeline:{m1_3:"Top 3 automatable tasks → fully autonomous",m4_6:"Self-serve beta, parallel with managed",m7_12:"Self-serve majority, managed for enterprise"}}},
+{from:11,to:12,reasoning:"Dev shops building the same thing repeatedly should productize instead of rebuilding.",actions:{team:["Project devs → product devs","Hire product manager","Reduce client-facing PMs"],gtm:["Find system built 3+ times","Package as product with self-serve","Subscription not project pricing"],ops:["Extract patterns into product","Multi-tenant from single-tenant","Config layer replacing custom dev"],finance:["Investment while maintaining services","Consider $2-5M seed","12-month dual-track"],timeline:{m1_3:"Audit projects, find pattern, MVP",m4_6:"5 pilot customers, services for revenue",m7_12:"Product recurring revenue, wind down custom"}}},
+{from:12,to:13,reasoning:"Vertical ops expands scope. Partial autonomy → full autonomy.",actions:{team:["Reduce support as automation expands","Invest in reliability engineering","AI safety and rollback capabilities"],gtm:["From 'X tasks' to 'all ops in domain'","Outcome-based pricing with SLAs","Target larger customers"],ops:["Expand autonomous coverage progressively","Comprehensive monitoring and alerting","Automatic rollback for failures"],finance:["Scale economics improve dramatically","Series A/B ($10-30M) to capture market","Approaching SaaS-like margins"],timeline:{m1_3:"Expand from core to adjacent tasks",m4_6:"90%+ automation, SLA-backed pricing",m7_12:"Full autonomous, human for novel edge cases only"}}},
+{from:13,to:15,reasoning:"Service-as-software accumulates context. Enough context enables personalization and expansion.",actions:{team:["Hire context/personalization engineers","Data science for customer understanding","Reduce support as personalization works"],gtm:["Single outcome → personalized multi-outcome","Price on value, not tasks","'Your AI [function] that knows your business'"],ops:["Customer context models from usage data","Adaptive delivery learning each customer","Expand outcomes based on context"],finance:["Significant R&D in personalization","Venture-scale: $20-50M+","Winner-take-most dynamics"],timeline:{m1_3:"Build context models from usage data",m4_6:"Personalized delivery for top customers",m7_12:"Expand across base, add outcome types"}}},
+{from:14,to:15,reasoning:"Same as efficiency but harder. Revenue SaaS needs deep context to work.",actions:{team:["Heavy domain expert investment","Feedback loop engineering team","Data scientists for attribution"],gtm:["Prove attribution rigorously first","Start where context is deepest","Outcome-only pricing — skin in game"],ops:["Attribution models: actions → revenue","Context ingestion from full revenue stack","Long-feedback-loop monitoring"],finance:["Highest risk, highest reward","Patient capital: $20M+ long horizon","Break-even at 24-36 months"],timeline:{m1_3:"Prove attribution model for core case",m4_6:"Expand context, begin personalization",m7_12:"Personalized revenue outcomes at scale"}}},
+{from:18,to:15,reasoning:"Guilds accumulate collective intelligence. Shared context evolves toward contextual engine.",actions:{team:["Guild governance for data sharing","Shared AI engineering team","Recruit members for coverage"],gtm:["From 'expert network' to 'collective intelligence'","Outcome pricing as AI handles more","Market collective data advantage"],ops:["Shared context from all engagements","AI trained on collective expertise","Standardize quality across guild"],finance:["Cooperative: members fund shared infra","May raise $5-15M for platform","Revenue sharing model"],timeline:{m1_3:"Data sharing standards, shared platform MVP",m4_6:"AI capabilities from collective data",m7_12:"AI handles routine, members do high-judgment"}}},
+{from:20,to:15,reasoning:"BU-aaS accumulates operational context. That context fuels personalization.",actions:{team:["Generalists → vertical specialists + AI eng","Automation reduces headcount per client","Product team for personalization"],gtm:["From 'run function' to 'optimize intelligently'","Add strategic recommendations","Price on business impact"],ops:["Cross-client learning patterns","Predictive models for outcomes","Automate routine, elevate humans"],finance:["Venture-scale: $15-30M","Network effects from cross-client learning","Margins improve with automation"],timeline:{m1_3:"Context models from operational data",m4_6:"Predictive features alongside reactive ops",m7_12:"Personalized, proactive function management"}}},
+{from:23,to:13,reasoning:"Guided self-service dies when AI does the work itself. The guide becomes unnecessary.",actions:{team:["UX designers → AI engineers","Reduce support as AI handles tasks","Domain experts for output validation"],gtm:["From 'help you do it' to 'do it for you'","No more 200 questions","Outcome pricing, not subscription"],ops:["Replace decision trees with AI context ingestion","Document/data ingestion replaces manual input","Confidence scoring for edge cases"],finance:["Existential — someone else kills you if you don't","$10-20M raise likely","Complete revenue model change"],timeline:{m1_3:"AI handles simplest cases end-to-end",m4_6:"AI-first alongside guided flow, A/B test",m7_12:"AI 60%+ autonomous, guided as fallback"}}},
+{from:24,to:13,reasoning:"Vertical SaaS evolves to do the work. Domain knowledge enables outcome delivery.",actions:{team:["AI/ML engineers with domain expertise","Product: feature-building → outcome-building","CS around outcomes, not adoption"],gtm:["From 'manage ops' to 'run your ops'","Outcome-based pricing tier","Target adoption-struggling customers"],ops:["Automate top struggled workflow fully","AI agents within platform","Outcome measurement and QA"],finance:["Self-fund from SaaS revenue","Outcome tier at 3-5x ARPU","Growth round $10-20M to accelerate"],timeline:{m1_3:"Highest-value automation target",m4_6:"'Done for you' tier, pilot with 10",m7_12:"Outcome tier drives new revenue"}}},
+{from:24,to:14,reasoning:"Vertical SaaS with revenue features → revenue outcome delivery. Domain constrains the problem.",actions:{team:["Revenue domain experts for vertical","Attribution engineering team","AI agents for revenue workflows"],gtm:["'We grow your [industry] revenue'","Price on revenue generated","Start most measurable workflow"],ops:["Attribution: actions → revenue outcomes","AI agents execute revenue workflows","Long-term outcome tracking"],finance:["High investment, high payoff","Venture raise $10-20M","Shift to performance-based"],timeline:{m1_3:"Most attributable workflow, build autonomous",m4_6:"Pilot 5-10 customers, prove attribution",m7_12:"Performance-priced tier, scale proven workflows"}}},
+{from:25,to:15,reasoning:"Platforms own operational data. Outcome delivery with that context = contextual engine.",actions:{team:["AI product team for merchant intelligence","Domain experts for outcomes","Platform eng → AI orchestration"],gtm:["From 'build on us' to 'we grow your business'","AI services as premium tier","Outcome-based pricing"],ops:["Context models from platform data","AI agents acting on customer's behalf","Progressive autonomy: suggest → approve → auto"],finance:["Venture-scale endgame: $50M+ rounds","Platform fees → outcome-based revenue","Massive TAM expansion"],timeline:{m1_3:"AI suggestions from data patterns",m4_6:"AI actions with approval (semi-autonomous)",m7_12:"Fully autonomous for proven use cases"}}},
+{from:26,to:16,reasoning:"Data providers evolve from static access to dynamic, continuously maintained context fabric.",actions:{team:["AI engineers for contextual modeling","Real-time data integration team","Data analysts → context engineers"],gtm:["From 'access data' to 'maintain your context'","Price on freshness and integration depth","Target those drowning in fragmented info"],ops:["Real-time integration with customer systems","Adaptive models learning decision patterns","Proactive alerting — push, don't wait"],finance:["Self-fundable from subscriptions","Context broker at 2-3x current pricing","May raise $10-20M to accelerate"],timeline:{m1_3:"Real-time integration prototype, 3-5 customers",m4_6:"Proactive intelligence, test new pricing",m7_12:"Full context broker for early adopters"}}},
+{from:27,to:19,reasoning:"API providers commoditizing evolve into embedded intelligence inside other products.",actions:{team:["Partnerships/BD team","Integration engineers for embedding","General API → vertical fine-tuning"],gtm:["From 'use our API' to 'we power your AI'","Price on value through partners","Target platforms needing AI outcomes"],ops:["White-label deployment infra","Partner-specific fine-tuning","SLAs and monitoring for embedded"],finance:["High-volume, lower-margin","Venture-scale in major platforms: $20M+","Revenue tied to partner growth"],timeline:{m1_3:"2-3 embedded partnerships, framework",m4_6:"Scale deployments, partner metrics",m7_12:"Embedded revenue ≥ direct API revenue"}}}
+];
+
+const FP=[
+{id:"consultancy",label:"Consultancy / Agency",icon:"🧑‍💼",cur:[1,7,8],tgt:[9,10,18,20,22],advice:"Your relationships and domain knowledge are your moat — but delivery is being commoditized. Keep the human interface for trust, replace delivery with AI. Stop selling hours, start selling outcomes."},
+{id:"devshop",label:"Dev / Software Shop",icon:"💻",cur:[4,11],tgt:[12,20,17],advice:"Building software is commoditizing fastest. Specialize in a vertical and productize, or stop building tools and operate the outcomes. 'Build and handover' has ~18 months."},
+{id:"saas",label:"SaaS Product",icon:"📦",cur:[3,5,6,24],tgt:[13,14,15,12],advice:"Your customers accepted your tool because custom was too expensive. AI changes that. Evolve from 'here's a tool' to 'here's the outcome.' Your data and domain logic are your head start."},
+{id:"data",label:"Data / Analytics Co",icon:"📊",cur:[7,26],tgt:[16,15,20],advice:"You're sitting on the most valuable AI-era asset: context. Evolve from selling data access to maintaining a living orientation fabric."},
+{id:"platform",label:"Platform / Marketplace",icon:"🏗️",cur:[25,23],tgt:[15,17],advice:"You own the customer's operational data. Use it to progressively do what they do manually. Every config/interpret step is an AI outcome opportunity."},
+{id:"starting",label:"Starting from Scratch",icon:"🚀",cur:[],tgt:[9,10,12,20,16],advice:"No legacy — that's your advantage. Start delivering outcomes via human interface (agency), acquire context each engagement, then automate. Services wedge = revenue + context + product insight."},
+{id:"freelancer",label:"Freelancer / Solo",icon:"🎯",cur:[1,4],tgt:[18,22,9],advice:"Your expertise doesn't scale. Three paths: guild (share AI infra), premium-artisanal (charge more for human), or AI-first agency (agency outcomes solo)."}
+];
+
+const SC={legacy:{c:"#ef4444",bg:"#fef2f2",l:"Legacy"},current:{c:"#f59e0b",bg:"#fffbeb",l:"Current"},emerging:{c:"#22c55e",bg:"#f0fdf4",l:"Emerging"},frontier:{c:"#8b5cf6",bg:"#f5f3ff",l:"Frontier"}};
+const II={human:"🧑",gui:"🖥️",hybrid:"🔀",none:"👻"};
+const PL={project:"Project",retainer:"Retainer",subscription:"Subscription",outcome:"Outcome-based"};
+const PC={revenue:"#3b82f6",efficiency:"#10b981",capability:"#f59e0b"};
+const AI={team:"👥",gtm:"📣",ops:"⚙️",finance:"💰"};
+const AL={team:"Team",gtm:"Go-to-Market",ops:"Operations",finance:"Finance"};
+const TL={m1_3:"Months 1-3",m4_6:"Months 4-6",m7_12:"Months 7-12"};
+
+let state={sel:null,arrow:null,pf:"all",fp:null,arrows:true,compare:false,comp:[]};
+
+function gm(id){return M.find(m=>m.id===id)}
+function prof(){return state.fp?FP.find(f=>f.id===state.fp):null}
+function visMig(){
+  const p=prof();
+  if(!state.arrows)return[];
+  if(!p)return MIG;
+  return MIG.filter(m=>p.cur.includes(m.from)||p.tgt.includes(m.to));
+}
+function compMig(){
+  const p=prof();if(!p)return[];
+  return MIG.filter(m=>p.cur.includes(m.from)&&p.tgt.includes(m.to));
+}
+function filtered(){return M.filter(m=>state.pf==="all"||m.problems.includes(state.pf))}
+function isHL(id){const p=prof();return!p||p.cur.includes(id)||p.tgt.includes(id)}
+function isCN(id){const p=prof();return p&&p.cur.includes(id)}
+function isTN(id){const p=prof();return p&&p.tgt.includes(id)}
+
+const W=660,H=460,PD={l:48,r:22,t:22,b:42};
+function tx(x){return PD.l+(x/100)*(W-PD.l-PD.r)}
+function ty(y){return PD.t+((100-y)/100)*(H-PD.t-PD.b)}
+
+function render(){
+  const p=prof(),f=filtered(),fids=new Set(f.map(m=>m.id)),vm=visMig(),cm=compMig();
+  const sm=state.sel?gm(state.sel):null;
+  const sa=state.arrow!==null?vm[state.arrow]:null;
+
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;background:#fafbfc;border-radius:8px;border:1px solid #e5e7eb">
+<defs><marker id="a1" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#a78bfa"/></marker>
+<marker id="a2" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#6366f1"/></marker>
+<marker id="a3" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><path d="M0,0 L6,2 L0,4" fill="#f59e0b"/></marker></defs>`;
+  [0,25,50,75,100].forEach(v=>{svg+=`<line x1="${tx(v)}" y1="${PD.t}" x2="${tx(v)}" y2="${H-PD.b}" stroke="#f0f0f0" stroke-width=".5"/><line x1="${PD.l}" y1="${ty(v)}" x2="${W-PD.r}" y2="${ty(v)}" stroke="#f0f0f0" stroke-width=".5"/>`;});
+  svg+=`<text x="${PD.l+2}" y="${H-6}" font-size="8" fill="#ccc">← Human Delivery</text>`;
+  svg+=`<text x="${W-PD.r}" y="${H-6}" font-size="8" fill="#ccc" text-anchor="end">AI Delivery →</text>`;
+  svg+=`<text x="${W/2}" y="${H-4}" font-size="8" fill="#bbb" text-anchor="middle" font-weight="600">DELIVERY BLEND</text>`;
+  svg+=`<text x="6" y="${H/2}" font-size="8" fill="#bbb" text-anchor="middle" font-weight="600" transform="rotate(-90,6,${H/2})">CONTEXT ACQUISITION</text>`;
+
+  vm.forEach((m,i)=>{
+    const fr=gm(m.from),to=gm(m.to);
+    if(!fr||!to||!fids.has(fr.id)||!fids.has(to.id))return;
+    const x1=tx(fr.x),y1=ty(fr.y),x2=tx(to.x),y2=ty(to.y);
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy),nx=dx/len,ny=dy/len;
+    const isSel=state.arrow===i,isC=state.comp.includes(i);
+    const dim=p&&!(p.cur.includes(m.from)&&p.tgt.includes(m.to));
+    svg+=`<line x1="${x1+nx*12}" y1="${y1+ny*12}" x2="${x2-nx*12}" y2="${y2-ny*12}" stroke="transparent" stroke-width="14" style="cursor:pointer" data-arrow="${i}"/>`;
+    const col=isC?"#f59e0b":isSel?"#6366f1":"#c4b5fd";
+    const sw=isSel||isC?2.5:1;
+    const mk=isC?"url(#a3)":isSel?"url(#a2)":"url(#a1)";
+    const op=dim?0.15:(isSel||isC?1:0.4);
+    svg+=`<line x1="${x1+nx*12}" y1="${y1+ny*12}" x2="${x2-nx*12}" y2="${y2-ny*12}" stroke="${col}" stroke-width="${sw}" marker-end="${mk}" opacity="${op}" style="pointer-events:none"/>`;
+  });
+
+  f.forEach(m=>{
+    const cx=tx(m.x),cy=ty(m.y),sc=SC[m.status];
+    const isSel=state.sel===m.id,dim=p&&!isHL(m.id);
+    const op=dim?0.12:1;
+    svg+=`<g data-node="${m.id}" style="cursor:${state.compare?'default':'pointer'}" opacity="${op}">`;
+    if(isCN(m.id))svg+=`<circle cx="${cx}" cy="${cy}" r="15" fill="none" stroke="#6366f1" stroke-width="2.5"/>`;
+    if(isTN(m.id))svg+=`<circle cx="${cx}" cy="${cy}" r="15" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="4,3"/>`;
+    svg+=`<circle cx="${cx}" cy="${cy}" r="${isSel?11:9}" fill="${isSel?sc.c:sc.bg}" stroke="${sc.c}" stroke-width="${isSel?2:1.5}"/>`;
+    svg+=`<text x="${cx}" y="${cy+1}" text-anchor="middle" dominant-baseline="middle" font-size="8">${II[m.iface]}</text>`;
+    svg+=`<foreignObject x="${cx-40}" y="${cy+12}" width="80" height="26" style="pointer-events:none;overflow:visible"><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:6.5px;font-weight:600;color:${dim?'#ddd':'#555'};text-align:center;line-height:1.2">${m.name}</div></foreignObject>`;
+    svg+=`</g>`;
+  });
+  svg+=`</svg>`;
+
+  // Panel
+  let panel='';
+  if(state.compare&&state.comp.length>0){
+    const colors=["#6366f1","#22c55e","#f59e0b"];
+    panel=`<div class="compare-header">⚖️ <strong>Comparing ${state.comp.length} path${state.comp.length>1?'s':''}</strong> — click arrows to add/remove (max 3)</div>`;
+    state.comp.forEach((idx,ci)=>{
+      const m=vm[idx];if(!m)return;
+      const fr=gm(m.from),to=gm(m.to),col=colors[ci];
+      panel+=`<div class="compare-card" style="border-color:${col}"><div style="font-weight:700;color:${col};margin-bottom:4px;font-size:12px">${fr.name} → ${to.name}</div>`;
+      panel+=`<p style="color:#555;line-height:1.4;margin:0 0 8px">${m.reasoning}</p>`;
+      Object.entries(m.actions).filter(([k])=>k!=='timeline').forEach(([k,v])=>{
+        panel+=`<div style="margin-bottom:6px"><div style="font-weight:600;color:#888;font-size:9px">${AI[k]} ${AL[k]}</div>`;
+        v.forEach(a=>{panel+=`<div style="color:#444;padding-left:10px;font-size:10px;line-height:1.4">• ${a}</div>`;});
+        panel+=`</div>`;
+      });
+      panel+=`<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-radius:6px"><div style="font-weight:600;color:#888;font-size:9px;margin-bottom:4px">📅 Timeline</div>`;
+      Object.entries(m.actions.timeline).forEach(([k,v])=>{
+        panel+=`<div style="margin-bottom:4px"><span style="font-weight:600;color:${col};font-size:9px">${TL[k]}: </span><span style="color:#444;font-size:10px">${v}</span></div>`;
+      });
+      panel+=`</div></div>`;
+    });
+  } else if(sa){
+    const fr=gm(sa.from),to=gm(sa.to);
+    panel=`<div class="detail-card" style="border-color:#6366f1;background:#fff">`;
+    panel+=`<div style="font-size:9px;font-weight:700;color:#6366f1;text-transform:uppercase;margin-bottom:4px">Migration Path</div>`;
+    panel+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;flex-wrap:wrap">`;
+    panel+=`<span style="padding:2px 6px;border-radius:6px;background:${SC[fr.status].bg};border:1px solid ${SC[fr.status].c};font-size:10px;font-weight:600">${fr.name}</span>`;
+    panel+=`<span style="color:#6366f1;font-weight:700;font-size:11px">→</span>`;
+    panel+=`<span style="padding:2px 6px;border-radius:6px;background:${SC[to.status].bg};border:1px solid ${SC[to.status].c};font-size:10px;font-weight:600">${to.name}</span></div>`;
+    panel+=`<p style="color:#555;line-height:1.4;margin:0 0 10px;font-size:11px">${sa.reasoning}</p>`;
+    panel+=`<div style="font-size:9px;font-weight:700;color:#333;text-transform:uppercase;margin-bottom:6px;border-top:1px solid #e5e7eb;padding-top:8px">Action Plan</div>`;
+    Object.entries(sa.actions).filter(([k])=>k!=='timeline').forEach(([k,v])=>{
+      panel+=`<div class="action-section"><div class="action-title">${AI[k]} ${AL[k]}</div>`;
+      v.forEach(a=>{panel+=`<div class="action-item">• ${a}</div>`;});
+      panel+=`</div>`;
+    });
+    panel+=`<div class="tl-box"><div style="font-weight:700;color:#166534;font-size:10px;margin-bottom:6px">📅 Transformation Timeline</div>`;
+    Object.entries(sa.actions.timeline).forEach(([k,v])=>{
+      panel+=`<div class="tl-phase">${TL[k]}</div><div class="tl-desc">${v}</div>`;
+    });
+    panel+=`</div></div>`;
+  } else if(sm){
+    const sc=SC[sm.status];
+    panel=`<div class="detail-card" style="border-color:${sc.c};background:${sc.bg}">`;
+    panel+=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">`;
+    panel+=`<h3 style="margin:0">${sm.name}</h3>`;
+    panel+=`<span class="tag" style="background:${sc.c};color:#fff;white-space:nowrap;margin-left:4px">${sc.l}</span></div>`;
+    panel+=`<div style="font-size:10px;color:#888;margin-bottom:4px;font-style:italic">${sm.subtitle}</div>`;
+    panel+=`<div style="font-size:10px;color:#666;margin-bottom:6px">${sm.examples}</div>`;
+    panel+=`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">`;
+    sm.problems.forEach(pr=>{panel+=`<span class="tag" style="background:${PC[pr]};color:#fff">${pr}</span>`;});
+    panel+=`<span class="tag" style="background:#f1f5f9;color:#666">${II[sm.iface]} ${sm.iface}</span>`;
+    panel+=`<span class="tag" style="background:#f1f5f9;color:#666">💰 ${PL[sm.pricing]}</span>`;
+    panel+=`<span class="tag" style="background:#f1f5f9;color:#666">🎭 ${sm.archetype}</span></div>`;
+    panel+=`<p style="font-size:10px;color:#444;line-height:1.5;margin:0 0 6px">${sm.description}</p>`;
+    panel+=`<div class="best-box"><div class="label">Best suited for</div><div class="val">${sm.bestFor}</div></div>`;
+    const outs=MIG.filter(a=>a.from===sm.id),ins=MIG.filter(a=>a.to===sm.id);
+    if(outs.length||ins.length){
+      panel+=`<div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;margin-bottom:3px">Migration paths</div>`;
+      outs.forEach(a=>{const to=gm(a.to);const mi=vm.indexOf(a);panel+=`<div class="mig-link" data-miglink="${mi}">→ ${to.name}</div>`;});
+      ins.forEach(a=>{const fr=gm(a.from);panel+=`<div class="mig-from">← from ${fr.name}</div>`;});
+    }
+    panel+=`</div>`;
+  } else {
+    panel=`<div class="empty-panel"><div style="font-size:24px">🧭</div><div style="font-size:11px">Select your context above, then click nodes or arrows to explore</div><div style="font-size:9px;color:#ddd">27 models · 24 migration paths · action plans & timelines</div></div>`;
+  }
+
+  // Founder buttons
+  let fpHTML=`<div class="card"><div class="card-label">I'm currently running a...</div><div class="btn-row">`;
+  FP.forEach(f=>{fpHTML+=`<button class="btn${state.fp===f.id?' on':''}" data-fp="${f.id}">${f.icon} ${f.label}</button>`;});
+  fpHTML+=`</div>`;
+  if(p)fpHTML+=`<div class="strat-box"><strong>Strategy:</strong> ${p.advice}</div>`;
+  fpHTML+=`</div>`;
+
+  // Filters
+  let fHTML=`<div class="filter-row"><div class="btn-row">`;
+  [["all","All","#666"],["revenue","Revenue",PC.revenue],["efficiency","Efficiency",PC.efficiency],["capability","Capability",PC.capability]].forEach(([k,l,c])=>{
+    const on=state.pf===k;
+    fHTML+=`<button class="btn" data-pf="${k}" style="${on?`background:${c};color:#fff;border-color:${c}`:''}">${l}</button>`;
+  });
+  fHTML+=`</div>`;
+  fHTML+=`<button class="btn${state.arrows?' on':''}" data-toggle="arrows">↗ Arrows</button>`;
+  if(p&&cm.length>1)fHTML+=`<button class="btn${state.compare?' on-y':''}" data-toggle="compare">⚖️ Compare Paths</button>`;
+  fHTML+=`<div class="legend">`;
+  Object.entries(SC).forEach(([k,v])=>{fHTML+=`<span><span class="legend-dot" style="background:${v.c}"></span> ${v.l}</span>`;});
+  fHTML+=`</div></div>`;
+
+  document.getElementById('app').innerHTML=`
+    <h1>AI-First Transformation Navigator</h1>
+    <p class="sub">Select your context → see where you are & where to go → explore action plans for each migration path</p>
+    ${fpHTML}${fHTML}
+    <div class="main"><div class="map-wrap">${svg}</div><div class="panel">${panel}</div></div>`;
+
+  // Events
+  document.querySelectorAll('[data-fp]').forEach(el=>el.onclick=()=>{
+    const id=el.dataset.fp;state.fp=state.fp===id?null:id;state.sel=null;state.arrow=null;state.compare=false;state.comp=[];render();
+  });
+  document.querySelectorAll('[data-pf]').forEach(el=>el.onclick=()=>{state.pf=el.dataset.pf;render();});
+  document.querySelector('[data-toggle="arrows"]')&&(document.querySelector('[data-toggle="arrows"]').onclick=()=>{state.arrows=!state.arrows;render();});
+  document.querySelector('[data-toggle="compare"]')&&(document.querySelector('[data-toggle="compare"]').onclick=()=>{state.compare=!state.compare;state.comp=[];state.arrow=null;state.sel=null;render();});
+  document.querySelectorAll('[data-arrow]').forEach(el=>el.onclick=()=>{
+    const i=+el.dataset.arrow;
+    if(state.compare){
+      if(state.comp.includes(i))state.comp=state.comp.filter(x=>x!==i);
+      else if(state.comp.length<3)state.comp.push(i);
+    }else{state.arrow=state.arrow===i?null:i;state.sel=null;}
+    render();
+  });
+  document.querySelectorAll('[data-node]').forEach(el=>el.onclick=()=>{
+    if(state.compare)return;
+    const id=+el.dataset.node;state.sel=state.sel===id?null:id;state.arrow=null;render();
+  });
+  document.querySelectorAll('[data-miglink]').forEach(el=>el.onclick=e=>{
+    e.stopPropagation();const i=+el.dataset.miglink;if(i>=0){state.arrow=i;state.sel=null;render();}
+  });
+}
+
+render();
+</script>
+</body>
+</html>
